@@ -1,4 +1,4 @@
-package ru.example.mobile.testgithubapi.ui.theme
+package ru.example.mobile.testgithubapi.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

@@ -1,4 +1,4 @@
-package ru.example.mobile.testgithubapi.ui.theme
+package ru.example.mobile.testgithubapi.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

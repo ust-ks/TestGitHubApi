@@ -16,5 +16,7 @@ data class UserDto(
     @SerializedName("avatar_url")
     val avatarUrl: String,
     @SerializedName("followers_url")
-    val followersUrl: String
+    val followersUrl: String,
+    @SerializedName("repos_url")
+    val reposUrl: String
 )

@@ -41,23 +41,22 @@ class SearchUsersActivity : ComponentActivity() {
 
         setContent {
             TestGitHubApiTheme {
-                SearchUsersScreen(searchUsersViewModel)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    SearchBar(viewModel.searchQuery) { viewModel.searchUsers() }
+                    ListResults(viewModel.searchResult) { startUserRepositoriesActivity(it) }
+                }
             }
         }
     }
-}
 
-@Composable
-fun SearchUsersScreen(
-    viewModel: SearchUsersViewModel
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        SearchBar(viewModel.searchQuery) { viewModel.searchUsers() }
-        ListResults(viewModel.searchResult)
+    private fun startUserRepositoriesActivity(user: UserEntity) {
+        val intent = Intent(this, UserRepositoriesActivity::class.java)
+        intent.putExtra("user", user)
+        startActivity(intent)
     }
 }
 
@@ -89,24 +88,27 @@ private fun SearchBar(
 
 @Composable
 private fun ListResults(
-    resultStateFlow: StateFlow<List<UserEntity>>
+    resultStateFlow: StateFlow<List<UserEntity>>,
+    onItemClick: (UserEntity) -> Unit
 ) {
     val result: List<UserEntity> by resultStateFlow.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(result) {
-            UserItem(it)
+            UserItem(it) { onItemClick(it) }
         }
     }
 }
 
 @Composable
 private fun UserItem(
-    user: UserEntity
+    user: UserEntity,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier

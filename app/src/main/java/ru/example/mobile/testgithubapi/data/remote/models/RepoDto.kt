@@ -5,8 +5,9 @@ import com.google.gson.annotations.SerializedName
 data class RepoDto(
     val id: String,
     val name: String,
-    val description: String,
-    // дата последнего коммита val dateLastC
+    val description: String?,
+    @SerializedName("commits_url")
+    val commitsUrl: String,
     @SerializedName("default_branch")
     val defaultBranch: String,
     @SerializedName("forks_count")

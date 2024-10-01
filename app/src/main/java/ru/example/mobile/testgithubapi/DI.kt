@@ -5,9 +5,11 @@ import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
+import ru.example.mobile.testgithubapi.data.local.UserEntity
 import ru.example.mobile.testgithubapi.data.remote.ApiService
 import ru.example.mobile.testgithubapi.data.remote.RetrofitClient
 import ru.example.mobile.testgithubapi.presentation.viewModels.SearchUsersViewModel
+import ru.example.mobile.testgithubapi.presentation.viewModels.UserRepositoriesViewModel
 
 object DI {
 
@@ -36,6 +38,7 @@ object DI {
 
     private fun presentationModule() = module {
         viewModel { SearchUsersViewModel(get()) }
+        viewModel { (user: UserEntity) -> UserRepositoriesViewModel(get(), user) }
     }
 
 }

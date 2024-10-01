@@ -26,7 +26,7 @@ class SearchUsersViewModel(
     fun searchUsers() {
         val query: String = searchQuery.value
         if (query.isBlank()) return
-
+        _searchResult.value.clear()
         viewModelScope.launch(Dispatchers.IO) {
             apiService.searchUserByQuery(query).enqueue(
                 object : Callback<UsersResponse> {
@@ -37,7 +37,9 @@ class SearchUsersViewModel(
                             _searchResult.value = _searchResult.value.toMutableList().apply { add(userEntity) }
                             getCountFollowers(userDto.followersUrl) { count ->
                                 val index = _searchResult.value.indexOf(userEntity)
-                                _searchResult.value[index].followersCount = count
+                                _searchResult.value = _searchResult.value.toMutableList().apply {
+                                    this[index].followersCount = count
+                                }
                             }
                         }
                     }

@@ -7,8 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +23,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -53,6 +57,7 @@ class UserRepositoriesActivity : ComponentActivity() {
                         .padding(16.dp)
                 ) {
                     UserInfo(user)
+                    RepositoryTitle()
                     ListRepositories(viewModel.repositories)
                 }
             }
@@ -73,7 +78,8 @@ private fun UserInfo(user: UserEntity) {
         Column {
             Text(
                 text = user.login,
-                modifier = Modifier.padding(5.dp)
+                modifier = Modifier.padding(5.dp),
+                style = TextStyle(fontSize = 18.sp)
             )
 
             Text(
@@ -81,6 +87,18 @@ private fun UserInfo(user: UserEntity) {
                 modifier = Modifier.padding(5.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun RepositoryTitle() {
+    Column {
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "Repositories: ",
+            style = TextStyle(fontSize = 18.sp)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
     }
 }
 
@@ -103,47 +121,61 @@ private fun RepoItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 5.dp),
+
     ) {
-        Text(
-            text = repo.name,
-            modifier = Modifier.padding(4.dp)
-        )
+        Column(
+            modifier = Modifier.padding(10.dp)
+        ) {
 
-        if (repo.description != null) {
             Text(
-                text = repo.description,
-                modifier = Modifier.padding(4.dp)
+                text = repo.name,
+                modifier = Modifier.padding(4.dp),
+                style = TextStyle(fontSize = 24.sp)
             )
-        }
 
-        if (repo.lastCommitDate != null) {
+            if (repo.description != null) {
+                Text(
+                    text = repo.description,
+                    modifier = Modifier.padding(2.dp),
+                    style = TextStyle(fontSize = 12.sp)
+                )
+            }
+
+            if (repo.lastCommitDate != null) {
+                Text(
+                    text = "last commit: ${repo.lastCommitDate!!.toFormatDateTime()}",
+                    modifier = Modifier.padding(2.dp),
+                    style = TextStyle(fontSize = 12.sp)
+                )
+            }
+
             Text(
-                text = "last commit: ${repo.lastCommitDate!!.toFormatDateTime()}",
-                modifier = Modifier.padding(4.dp)
+                text = "default branch: ${repo.defaultBranch}",
+                modifier = Modifier.padding(2.dp),
+                style = TextStyle(fontSize = 12.sp)
             )
-        }
 
-        Text(
-            text = "default branch: ${repo.defaultBranch}",
-            modifier = Modifier.padding(4.dp)
-        )
-
-        Text(
-            text = "forks = ${repo.forksCount}",
-            modifier = Modifier.padding(4.dp)
-        )
-
-        Text(
-            text = "starts = ${repo.stargazersCount}",
-            modifier = Modifier.padding(4.dp)
-        )
-
-        if (repo.language != null) {
             Text(
-                text = "language: ${repo.language}",
-                modifier = Modifier.padding(4.dp)
+                text = "forks = ${repo.forksCount}",
+                modifier = Modifier.padding(2.dp),
+                style = TextStyle(fontSize = 12.sp)
             )
+
+            Text(
+                text = "starts = ${repo.stargazersCount}",
+                modifier = Modifier.padding(2.dp),
+                style = TextStyle(fontSize = 12.sp)
+            )
+
+            if (repo.language != null) {
+                Text(
+                    text = "language: ${repo.language}",
+                    modifier = Modifier.padding(2.dp),
+                    style = TextStyle(fontSize = 12.sp)
+                )
+            }
+
         }
     }
 }

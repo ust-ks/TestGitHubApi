@@ -13,11 +13,11 @@ data class RepoEntity(
     val stargazersCount: Int,
     val language: String?
 ) {
-    constructor(repoDto: RepoDto) : this(
+    constructor(repoDto: RepoDto, lastCommitDate: LocalDateTime? = null) : this(
         id = repoDto.id,
         name = repoDto.name,
         description = repoDto.description,
-        lastCommitDate = null,
+        lastCommitDate = lastCommitDate,
         defaultBranch = repoDto.defaultBranch,
         forksCount = repoDto.forksCount,
         stargazersCount = repoDto.stargazersCount,

@@ -1,74 +1,77 @@
 package ru.example.mobile.testgithubapi.presentation.viewModels
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import ru.example.mobile.testgithubapi.data.local.UserEntity
-import ru.example.mobile.testgithubapi.data.remote.models.UsersResponse
-import ru.example.mobile.testgithubapi.data.remote.ApiService
-import ru.example.mobile.testgithubapi.data.remote.models.FollowerDto
+import ru.example.mobile.testgithubapi.data.remote.RemoteDataSource
+import ru.example.mobile.testgithubapi.data.remote.models.UserDto
 
 class SearchUsersViewModel(
-    private val apiService: ApiService
+    private val remoteDataSource: RemoteDataSource
 ) : ViewModel() {
 
-    var searchQuery: MutableStateFlow<String> = MutableStateFlow("")
+    var searchQueryField: MutableStateFlow<String> = MutableStateFlow("")
 
-    private var _searchResult: MutableStateFlow<MutableList<UserEntity>> =
-        MutableStateFlow(mutableListOf())
-    val searchResult: StateFlow<List<UserEntity>> get() = _searchResult
+    private var _searchResult = mutableStateListOf<UserEntity>()
+    val searchResult: SnapshotStateList<UserEntity> get() = _searchResult
+
+    private var loadUsersJob: Job? = null
+    private var loadFollowersUserJob: MutableList<Job> = mutableListOf()
+
+    private var currentQuery = ""
+    private var nextPage = 1
+    private var _isAllUsersLoaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isAllUsersLoaded: StateFlow<Boolean> = _isAllUsersLoaded
 
     fun searchUsers() {
-        val query: String = searchQuery.value
-        if (query.isBlank()) return
-        _searchResult.value.clear()
-        viewModelScope.launch(Dispatchers.IO) {
-            apiService.searchUserByQuery(query).enqueue(
-                object : Callback<UsersResponse> {
-                    override fun onResponse(call: Call<UsersResponse>, response: Response<UsersResponse>) {
-                        val users = response.body()?.items ?: return
-                        users.forEach { userDto ->
-                            val userEntity = UserEntity(userDto)
-                            _searchResult.value = _searchResult.value.toMutableList().apply { add(userEntity) }
-                            getCountFollowers(userDto.followersUrl) { count ->
-                                val index = _searchResult.value.indexOf(userEntity)
-                                _searchResult.value = _searchResult.value.toMutableList().apply {
-                                    this[index].followersCount = count
-                                }
-                            }
-                        }
-                    }
+        if (searchQueryField.value.isBlank()) return
 
-                    override fun onFailure(call: Call<UsersResponse>, t: Throwable) {
-                        t.printStackTrace()
-                        // todo handle error
-                    }
-                }
-            )
+        loadUsersJob?.cancel()
+        loadFollowersUserJob.map { it.cancel() }
+
+        _searchResult.clear()
+        currentQuery = searchQueryField.value
+        nextPage = 1
+        _isAllUsersLoaded.value = false
+
+        loadUsers()
+    }
+
+    fun loadUsers() {
+        if (loadUsersJob?.isActive == true) return
+        if (_isAllUsersLoaded.value) return
+        loadUsersJob = viewModelScope.launch(Dispatchers.IO) {
+            val userDtos = remoteDataSource.getUsersByQuery(currentQuery, nextPage)
+            if (userDtos.isNullOrEmpty()) {
+                _isAllUsersLoaded.value = true
+                return@launch
+            }
+
+            _searchResult.addAll(userDtos.map { UserEntity(it) }.toMutableList())
+            nextPage += 1
+
+            userDtos.forEach { loadFollowers(it) }
         }
     }
 
-    private fun getCountFollowers(url: String, updateFollowersCount: (Int) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            apiService.getFollowers(url).enqueue(
-                object : Callback<List<FollowerDto>> {
-                    override fun onResponse(call: Call<List<FollowerDto>>, response: Response<List<FollowerDto>>) {
-                        val followers = response.body() ?: return
-                        updateFollowersCount(followers.size)
-                    }
-
-                    override fun onFailure(call: Call<List<FollowerDto>>, t: Throwable) {
-                        t.printStackTrace()
-                        // todo handle error
-                    }
+    private suspend fun loadFollowers(userDto: UserDto) {
+        val job = viewModelScope.launch {
+            remoteDataSource.getFollowersCountForUser(userDto).also { followersCount ->
+                try {
+                    val index = _searchResult.indexOf(UserEntity(userDto))
+                    _searchResult[index] = _searchResult[index].copy(followersCount = followersCount)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            )
+            }
         }
+        loadFollowersUserJob.add(job)
     }
 
 }

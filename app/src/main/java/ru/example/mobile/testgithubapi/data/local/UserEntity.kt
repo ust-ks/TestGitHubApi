@@ -10,11 +10,11 @@ data class UserEntity(
     var reposUrl: String,
     var followersCount: Int?
 ) : Serializable {
-    constructor(userDto: UserDto): this(
+    constructor(userDto: UserDto, followersCount: Int? = null): this(
         id = userDto.id,
         login = userDto.login,
         avatarUrl = userDto.avatarUrl,
         reposUrl = userDto.reposUrl,
-        followersCount = null
+        followersCount = followersCount
     )
 }

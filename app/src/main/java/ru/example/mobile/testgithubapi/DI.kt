@@ -7,6 +7,7 @@ import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 import ru.example.mobile.testgithubapi.data.local.UserEntity
 import ru.example.mobile.testgithubapi.data.remote.ApiService
+import ru.example.mobile.testgithubapi.data.remote.RemoteDataSource
 import ru.example.mobile.testgithubapi.data.remote.RetrofitClient
 import ru.example.mobile.testgithubapi.presentation.viewModels.SearchUsersViewModel
 import ru.example.mobile.testgithubapi.presentation.viewModels.UserRepositoriesViewModel
@@ -34,6 +35,7 @@ object DI {
         single<ApiService> {
             RetrofitClient.retrofit.create(ApiService::class.java)
         }
+        single { RemoteDataSource(get()) }
     }
 
     private fun presentationModule() = module {
